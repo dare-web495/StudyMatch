@@ -1,0 +1,157 @@
+Table users {
+  id integer [pk]
+  university text [not null]
+  year_of_study smallint [not null, note: "range 1-7"]
+  bio text [null]
+  avatar text [null, note: "image path"]
+  reliability_score float [not null, default: 3.0, note: "Derived value, recalculated from ratings and attendance. Float is fine because it is approximate, not money. New users start at neutral 3.0."]
+
+  Note: "Inherits AbstractUser (username, email, password, is_active, etc.). Accounts are deactivated, not deleted."
+}
+
+Table availabilities {
+  id integer [pk]
+  user_id integer [not null]
+  day_of_week smallint [not null, note: "0-6"]
+  start_time time [not null]
+  end_time time [not null]
+
+  Note: "end_time must be after start_time. No overlapping slots per user per day."
+}
+
+Ref: availabilities.user_id > users.id [delete: cascade]
+
+Table courses {
+  id integer [pk]
+  code text [not null]
+  name text [not null]
+  university text [not null]
+
+  indexes {
+    (code, university) [unique]
+  }
+}
+
+Table enrollments {
+  id integer [pk]
+  user_id integer [not null]
+  course_id integer [not null]
+  semester text [not null, note: "free text, e.g. 2026-Fall"]
+
+  indexes {
+    (user_id, course_id, semester) [unique]
+  }
+}
+
+Ref: enrollments.user_id > users.id [delete: cascade]
+Ref: enrollments.course_id > courses.id [delete: restrict]
+
+enum visibility_choice {
+  public
+  invite_only
+}
+
+Table study_groups {
+  id integer [pk]
+  course_id integer [not null]
+  created_by_id integer [null]
+  name text [not null]
+  goal text [null]
+  max_members smallint [not null, note: "at least 1"]
+  visibility visibility_choice [not null]
+  is_archived boolean [not null, default: false, note: "groups are archived, not deleted"]
+  created_at datetime [not null]
+
+  Note: "created_by is history only. The active owner membership is the source of truth for control."
+}
+
+Ref: study_groups.course_id > courses.id [delete: restrict]
+Ref: study_groups.created_by_id > users.id [delete: set null]
+
+enum membership_role {
+  owner
+  member
+}
+
+enum membership_status {
+  pending
+  active
+  left
+}
+
+Table memberships {
+  id integer [pk]
+  user_id integer [not null]
+  group_id integer [not null]
+  role membership_role [not null]
+  status membership_status [not null]
+  joined_at datetime [null, note: "empty until status is active"]
+
+  indexes {
+    (user_id, group_id) [unique]
+  }
+
+  Note: "Exactly one active owner per group, enforced in code (or a partial unique index in PostgreSQL)."
+}
+
+Ref: memberships.user_id > users.id [delete: cascade]
+Ref: memberships.group_id > study_groups.id [delete: cascade]
+
+enum session_status {
+  scheduled
+  cancelled
+}
+
+Table study_sessions {
+  id integer [pk]
+  group_id integer [not null]
+  created_by_id integer [null]
+  title text [not null]
+  location_or_link text [not null]
+  start_time datetime [not null, note: "stored in UTC"]
+  duration integer [not null, note: "minutes"]
+  status session_status [not null]
+}
+
+Ref: study_sessions.group_id > study_groups.id [delete: cascade]
+Ref: study_sessions.created_by_id > users.id [delete: set null]
+
+enum attendance_status {
+  going
+  attended
+  no_show
+}
+
+Table attendances {
+  id integer [pk]
+  session_id integer [not null]
+  user_id integer [not null]
+  status attendance_status [not null]
+
+  indexes {
+    (session_id, user_id) [unique]
+  }
+}
+
+Ref: attendances.session_id > study_sessions.id [delete: cascade]
+Ref: attendances.user_id > users.id [delete: cascade]
+
+Table peer_ratings {
+  id integer [pk]
+  rater_id integer [null]
+  rated_user_id integer [not null]
+  session_id integer [not null]
+  score smallint [not null, note: "1-5"]
+  comment text [null]
+  created_at datetime [not null]
+
+  indexes {
+    (rater_id, rated_user_id, session_id) [unique]
+  }
+
+  Note: "rater must not equal rated_user. Unique rule does not catch duplicates once rater is set to null (accepted)."
+}
+
+Ref: peer_ratings.rater_id > users.id [delete: set null]
+Ref: peer_ratings.session_id > study_sessions.id [delete: restrict]
+Ref: peer_ratings.rated_user_id > users.id [delete: cascade]
