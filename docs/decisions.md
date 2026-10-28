@@ -44,3 +44,30 @@ punishing or rewarding users with no history.
 **Decision:** Accepted limitation. Databases treat nulls as distinct, so the
 unique rule cannot block duplicates once rater is null.
 **Why:** Rare edge case that only arises after account removal.
+
+## 9. Courses are created by admins only
+**Decision:** Only staff create courses (Django admin or seed script). Students
+can search and enroll but not create.
+**Why:** Matching depends on students sharing the same course row. Open creation
+would produce duplicates ("CS101", "cs 101") and break matching.
+**Revisit when:** Students regularly can't find their course. Then add a
+"suggest a course" flow that an admin approves.
+
+## 10. Any active group member can create a session
+**Decision:** Any active member can schedule a session. The creator or the group
+owner can edit or cancel it.
+**Why:** Study groups work better when anyone can propose a time. The owner
+override means a session never becomes uncontrollable if its creator leaves.
+**Alternatives considered:** Owner only (rejected: makes the owner a bottleneck).
+
+## 11. Attendance is self-reported
+**Decision:** Each member marks their own attendance, only after the session start time.
+**Why:** Simplest to build and doesn't make the owner police everyone.
+**Known weakness:** A member can claim attendance they didn't earn.
+Mitigation: see "Consequences" below.
+
+## D12. Rating window is 24 hours after the session ends
+**Decision:** Ratings can be submitted from the session's end until 24 hours later.
+**Why:** Ratings are most honest while the session is fresh, and it keeps
+reliability scores from shifting long after the fact.
+**Alternatives considered:** 7 days (rejected: ratings become less accurate and scores stay in flux).
