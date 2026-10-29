@@ -5,8 +5,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # Create your models here.
 class User(AbstractUser):
     university = models.CharField(max_length=200, blank=False)
-    year_of_study = models.SmallIntegerField(validators=[MaxValueValidator(7), MinValueValidator(1)])
-    bio = models.TextField(null=True, blank=True)
+    year_of_study = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7), MinValueValidator(1)])
+    bio = models.TextField(null=True, blank=True, default="")
     avatar = models.ImageField(null=True, blank=True, upload_to='/media')
     reliability_score = models.FloatField(default=3.0)
 
