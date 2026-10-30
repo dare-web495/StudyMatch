@@ -7,10 +7,14 @@ class Course(models.Model):
     university = models.CharField(max_length=200)
 
     class Meta:
-        # Yet to add ordering
+        ordering = ['university', 'code']
+
         constraints = [
             models.UniqueConstraint(
                 fields=['code', 'university'],
                 name='Unique_code_per_university'
             ),
         ]
+
+    def __str__(self):
+        return f"{self.code} {self.university}"
