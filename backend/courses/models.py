@@ -22,16 +22,17 @@ class Course(models.Model):
 
 
 class Enrollment(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODELS, on_delete='CASCADE', related_name="enrollments")
-    course = models.ForeignKey(Course, on_delete='PROTECT', related_name="enrollments")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="enrollments")
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name="enrollments")
     semester = models.CharField(max_length=20)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'course', 'semester']
+                fields=['user', 'course', 'semester'],
+                name='courses_unique_enrollment_per_semester'
             )
         ]
 
     def __str__(self):
-        return f"{self.user} enrolled for: {self.course}, having {self.semester}"
+        return f"{self.user} - {self.course} - {self.semester}"
