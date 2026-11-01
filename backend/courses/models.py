@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 # Create your models here.
 class Course(models.Model):
@@ -12,9 +13,25 @@ class Course(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['code', 'university'],
-                name='Unique_code_per_university'
+                name='courses_unique_code_per_university'
             ),
         ]
 
     def __str__(self):
-        return f"{self.code} {self.university}"
+        return f"{self.code} ({self.university})"
+
+
+class Enrollment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODELS, on_delete='CASCADE', related_name="enrollments")
+    course = models.ForeignKey(Course, on_delete='PROTECT', related_name="enrollments")
+    semester = models.CharField(max_length=20)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'course', 'semester']
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} enrolled for: {self.course}, having {self.semester}"
