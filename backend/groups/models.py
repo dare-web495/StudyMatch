@@ -57,7 +57,7 @@ class Membership(models.Model):
 
             models.UniqueConstraint(
                 fields=['group'],
-                condition=Q(role='owner', status='active')
+                condition=Q(role='owner', status='active'),
                 name='groups_one_active_owner_per_group'
             )
         ]
