@@ -14,16 +14,16 @@ class StudyGroup(models.Model):
     name = models.CharField(max_length=100)
     goal = models.CharField(max_length=255, blank=True)
     max_members = models.PositiveSmallIntegerField(default=6)
-    visibility = models.CharField(choices=Visibility, default=Visibility.public)
+    visibility = models.CharField(choices=Visibility, default=Visibility.public, max_length=20)
     is_archived = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
 
         constraints = [
             models.CheckConstraint(
-                check = Q(max_member__gte=1),
+                condition = Q(max_members__gte=1),
                 name = 'groups_max_members_at_least_one'
             ),
         ]
@@ -43,16 +43,16 @@ class Membership(models.Model):
         left = 'left'
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="memberships")
-    group = models.ForeignKey(StudyGroup, on_delete=models.SET_NULL, null=True, related_name="created_groups")
-    role = models.CharField(choices=Role, default=Role.member)
-    status = models.CharField(choices=Status, default=Status.pending)
+    group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name="memberships")
+    role = models.CharField(choices=Role, default=Role.member, max_length=20)
+    status = models.CharField(choices=Status, default=Status.pending, max_length=20)
     joined_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'group'],
-                name='unique_user_per_group'
+                name='groups_unique_user_per_group'
             ),
 
             models.UniqueConstraint(
