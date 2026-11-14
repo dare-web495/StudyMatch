@@ -1,4 +1,4 @@
-from .models import Membership
+from .models import Membership, StudyGroup
 from django.contrib import admin
 
 class MembershipInline(admin.TabularInline):
@@ -17,4 +17,6 @@ class MembershipAdmin(admin.ModelAdmin):
     list_display = ('user', 'group', 'role', 'status', 'joined_at')
     list_filter = ('role', 'status')
     list_select_related = ('user', 'group')
-    
+
+admin.site.register(StudyGroup, StudyGroupAdmin)
+admin.site.register(Membership, MembershipAdmin)
