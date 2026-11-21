@@ -66,8 +66,17 @@ override means a session never becomes uncontrollable if its creator leaves.
 **Known weakness:** A member can claim attendance they didn't earn.
 Mitigation: see "Consequences" below.
 
-## D12. Rating window is 24 hours after the session ends
+## 12. Rating window is 24 hours after the session ends
 **Decision:** Ratings can be submitted from the session's end until 24 hours later.
 **Why:** Ratings are most honest while the session is fresh, and it keeps
 reliability scores from shifting long after the fact.
 **Alternatives considered:** 7 days (rejected: ratings become less accurate and scores stay in flux).
+
+## 13. Availability overlap is enforced in clean(), not the database
+**Decision:** The "no overlapping slots per user per day" rule lives in
+Availability.clean(). The database only enforces end_time > start_time.
+**Why:** Postgres can enforce overlap with an exclusion constraint, but that
+needs an extension and range types, which is more complexity than needed now.
+**Known limitation:** clean() runs in the admin and model forms, but not on a
+plain save() or create(). The seed script must generate non-overlapping slots,
+and the API serializer must call full_clean() or validate overlap itself.
