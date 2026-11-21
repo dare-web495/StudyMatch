@@ -24,7 +24,7 @@ class StudySession(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=Q(duration__gt=0),
-                name='duration_constraint'
+                name='meetings_session_duration_positive'
             ),
         ]
 
@@ -50,7 +50,7 @@ class Attendance(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['session', 'user'],
-                name="unique_user_per_session"
+                name="meetings_unique_user_per_session"
             ), 
         ]
 
@@ -75,12 +75,12 @@ class PeerRating(models.Model):
 
             models.CheckConstraint(
                 condition=Q(score__gte=1) & Q(score__lte=5),
-                name='score_check'
+                name='meetings_rating_score_1_to_5'
             ),
 
             models.CheckConstraint(
                 condition=~Q(rater=F('rated_user')),
-                name='rater_and_rated_user_constraint'
+                name='meetings_rating_no_self_rating'
             )
         ]
 
